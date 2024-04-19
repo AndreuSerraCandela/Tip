@@ -1562,7 +1562,7 @@ Page 50022 "Customer List Andreu"
 
 }
 
-Page 5021 "Productos Cliente"
+Page 50021 "Productos Cliente"
 {
 
     SourceTable = "Item Reference";
