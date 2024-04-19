@@ -2,7 +2,7 @@
   "id": "bd96ef91-91a1-43be-8514-6093480e8d7c",
   "name": "Tip",
   "publisher": "Ecoquimic By Andreu",
-  "version": "1.0.0.9",
+  "version": "1.0.1.0",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -19,7 +19,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "runtime": "11.0",
+  "runtime": "9.0",
   "features": [
     "NoImplicitWith"
   ]

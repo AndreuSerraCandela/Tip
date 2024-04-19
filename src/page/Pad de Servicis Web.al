@@ -40,11 +40,11 @@ Page 50022 "Customer List Andreu"
 
         area(factboxes)
         {
-            part(PowerBIEmbeddedReportPart; "Power BI Embedded Report Part")
-            {
-                ApplicationArea = Basic, Suite;
-                Visible = false;
-            }
+            // part(PowerBIEmbeddedReportPart; "Power BI Embedded Report Part")
+            // {
+            //     ApplicationArea = Basic, Suite;
+            //     Visible = false;
+            // }
             part(Control99; "CRM Statistics FactBox")
             {
                 ApplicationArea = All;
@@ -55,7 +55,7 @@ Page 50022 "Customer List Andreu"
             {
                 ApplicationArea = All;
                 Caption = 'Attachments';
-                SubPageLink = "Table ID" = CONST(Database::Customer),
+                SubPageLink = "Table ID" = CONST(18),
                               "No." = FIELD("No.");
                 Visible = NOT IsOfficeAddin;
             }
@@ -1434,228 +1434,7 @@ Page 50022 "Customer List Andreu"
                 ToolTip = 'View a list of payments due from a particular customer sorted by due date.';
             }
         }
-        area(Promoted)
-        {
-            group(Category_Process)
-            {
-                Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
-                actionref(PaymentRegistration_Promoted; PaymentRegistration)
-                {
-                }
-                actionref(Email_Promoted; Email)
-                {
-                }
-                actionref(ApplyTemplate_Promoted; ApplyTemplate)
-                {
-                }
-            }
-            group(Category_Category4)
-            {
-                Caption = 'Approve', Comment = 'Generated from the PromotedActionCategories property index 3.';
-            }
-            group(Category_Category6)
-            {
-                Caption = 'Request Approval', Comment = 'Generated from the PromotedActionCategories property index 5.';
-            }
-            group(Category_Category5)
-            {
-                Caption = 'New Document', Comment = 'Generated from the PromotedActionCategories property index 4.';
-
-                actionref(NewSalesQuote_Promoted; NewSalesQuote)
-                {
-                }
-                actionref(NewSalesOrder_Promoted; NewSalesOrder)
-                {
-                }
-                actionref(NewSalesInvoice_Promoted; NewSalesInvoice)
-                {
-                }
-                actionref(NewSalesCrMemo_Promoted; NewSalesCrMemo)
-                {
-                }
-                actionref(NewReminder_Promoted; NewReminder)
-                {
-                }
-            }
-            group(Category_Category7)
-            {
-                Caption = 'Customer', Comment = 'Generated from the PromotedActionCategories property index 6.';
-
-                actionref(CustomerLedgerEntries_Promoted; CustomerLedgerEntries)
-                {
-                }
-                actionref(Statistics_Promoted; Statistics)
-                {
-                }
-                group(Category_Dimensions)
-                {
-                    Caption = 'Dimensions';
-                    ShowAs = SplitButton;
-
-                    actionref(DimensionsMultiple_Promoted; DimensionsMultiple)
-                    {
-                    }
-                    actionref(DimensionsSingle_Promoted; DimensionsSingle)
-                    {
-                    }
-                }
-                actionref(ApprovalEntries_Promoted; ApprovalEntries)
-                {
-                }
-#if not CLEAN19
-                actionref(SentEmails_Promoted; SentEmails)
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Action SentEmails moved under history';
-                    ObsoleteTag = '19.0';
-                }
-#endif
-                actionref("Co&mments_Promoted"; "Co&mments")
-                {
-                }
-                actionref(OnlineMap_Promoted; OnlineMap)
-                {
-                }
-
-                separator(Navigate_Separator)
-                {
-                }
-
-                actionref("C&ontact_Promoted"; "C&ontact")
-                {
-                }
-                actionref("Sent Emails_Promoted"; "Sent Emails")
-                {
-                }
-                actionref("Item &Tracking Entries_Promoted"; "Item &Tracking Entries")
-                {
-                }
-                actionref("Item References_Promoted"; "Item References")
-                {
-                }
-                actionref(Quotes_Promoted; Quotes)
-                {
-                }
-                actionref(Orders_Promoted; Orders)
-                {
-                }
-                actionref("Return Orders_Promoted"; "Return Orders")
-                {
-                }
-#if not CLEAN21
-                actionref("Cash Receipt Journal_Promoted"; "Cash Receipt Journal")
-                {
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Action is being demoted based on overall low usage.';
-                    ObsoleteTag = '21.0';
-                }
-#endif
-#if not CLEAN21
-                actionref("Sales Journal_Promoted"; "Sales Journal")
-                {
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Action is being demoted based on overall low usage.';
-                    ObsoleteTag = '21.0';
-                }
-#endif
-            }
-            group(Category_Category9)
-            {
-                Caption = 'Prices & Discounts', Comment = 'Generated from the PromotedActionCategories property index 8.';
-
-#if not CLEAN21
-                actionref(Prices_Prices_Promoted; Prices_Prices)
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by the new implementation (V16) of price calculation.';
-                    ObsoleteTag = '17.0';
-                }
-#endif
-#if not CLEAN21
-                actionref(Prices_LineDiscounts_Promoted; Prices_LineDiscounts)
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by the new implementation (V16) of price calculation.';
-                    ObsoleteTag = '17.0';
-                }
-#endif
-                actionref(PriceLists_Promoted; PriceLists)
-                {
-                }
-                actionref(PriceLines_Promoted; PriceLines)
-                {
-                }
-                actionref(DiscountLines_Promoted; DiscountLines)
-                {
-                }
-            }
-            group(Category_Category8)
-            {
-                Caption = 'Navigate', Comment = 'Generated from the PromotedActionCategories property index 7.';
-            }
-            group(Category_Report)
-            {
-                Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-
-                actionref(BackgroundStatement_Promoted; BackgroundStatement)
-                {
-                }
-                actionref(Statement_Promoted; Statement)
-                {
-                }
-                actionref("Customer - Order Summary_Promoted"; "Customer - Order Summary")
-                {
-                }
-#if not CLEAN21
-                actionref("Customer - Sales List_Promoted"; "Customer - Sales List")
-                {
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Action is being demoted based on overall low usage.';
-                    ObsoleteTag = '21.0';
-                }
-#endif
-                actionref("Customer - Due Payments_Promoted"; "Customer - Due Payments")
-                {
-                }
-            }
-            group(Category_Synchronize)
-            {
-                Caption = 'Synchronize';
-                Visible = CRMIntegrationEnabled or CDSIntegrationEnabled;
-
-                group(Category_Coupling)
-                {
-                    Caption = 'Coupling';
-                    ShowAs = SplitButton;
-
-                    actionref(ManageCRMCoupling_Promoted; ManageCRMCoupling)
-                    {
-                    }
-                    actionref(DeleteCRMCoupling_Promoted; DeleteCRMCoupling)
-                    {
-                    }
-                    // actionref(MatchBasedCoupling_Promoted; MatchBasedCoupling)
-                    // {
-                    // }
-                }
-                actionref(CRMSynchronizeNow_Promoted; CRMSynchronizeNow)
-                {
-                }
-                actionref(UpdateStatisticsInCRM_Promoted; UpdateStatisticsInCRM)
-                {
-                }
-                actionref(CRMGotoAccount_Promoted; CRMGotoAccount)
-                {
-                }
-                actionref(ShowLog_Promoted; ShowLog)
-                {
-                }
-            }
-        }
     }
 
 
@@ -1783,7 +1562,7 @@ Page 50022 "Customer List Andreu"
 
 }
 
-Page 50501 "Productos Cliente"
+Page 5021 "Productos Cliente"
 {
 
     SourceTable = "Item Reference";
@@ -1904,7 +1683,7 @@ Page 50501 "Productos Cliente"
     END;
 }
 
-Page 50981 "Service Item List Andreu"
+Page 50023 "Service Item List Andreu"
 {
 
     Editable = false;
