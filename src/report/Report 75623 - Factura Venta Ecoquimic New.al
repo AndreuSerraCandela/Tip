@@ -1,4 +1,4 @@
-report 75623 "Factura Venta Ecoquimic New"
+report 50023 "Factura Venta Ecoquimic New"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

@@ -1,4 +1,4 @@
-report 55620 "Albarán Venta Ecoquimic New"
+report 50011 "Albarán Venta Ecoquimic New"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

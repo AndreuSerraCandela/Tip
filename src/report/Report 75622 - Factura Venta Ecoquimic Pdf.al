@@ -1,4 +1,4 @@
-report 75622 "Factura Venta Ecoquimic Pdf"
+report 50022 "Factura Venta Ecoquimic Pdf"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

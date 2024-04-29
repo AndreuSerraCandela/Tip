@@ -1,4 +1,4 @@
-report 75626 "Factura Servicio Ecoquimic New"
+report 50026 "Factura Servicio Ecoquimic New"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

@@ -1,4 +1,4 @@
-report 75617 "Factura Venta Ecoquimic"
+report 50017 "Factura Venta Ecoquimic"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

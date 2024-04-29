@@ -1,4 +1,4 @@
-report 75620 "Abono Venta Ecoquimic Pdf"
+report 50020 "Abono Venta Ecoquimic Pdf"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR

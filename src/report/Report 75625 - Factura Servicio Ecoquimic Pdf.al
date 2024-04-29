@@ -1,4 +1,4 @@
-report 75625 "Factura Servicio Ecoquimic Pdf"
+report 50025 "Factura Servicio Ecoquimic Pdf"
 {
     // -SAT 15/01/16 edaimiel - Saturno 2016.
     // //OJO ANDREU EDITA SIN ETIQUETAR
