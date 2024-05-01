@@ -2395,7 +2395,7 @@ Cstr(Fields!ImporteRe2.Value)</Value>
                 <Paragraph>
                   <TextRuns>
                     <TextRun>
-                      <Value EvaluationMode="Auto">Tecnologies Insustrials Pallicer, S.L.</Value>
+                      <Value EvaluationMode="Auto">Tecnologies Industrials Pallicer, S.L.</Value>
                       <Style>
                         <FontFamily>Segoe UI</FontFamily>
                         <FontSize>7pt</FontSize>
