@@ -1,24 +1,6 @@
 Codeunit 50002 "Pedidos Valorados"
 {
 
-    trigger OnRun()
-    BEGIN
-        SalesShipmentLine.SETRANGE("Document No.", '78301');
-        IF SalesShipmentLine.FINDFIRST() THEN BEGIN
-            SalesHeader.GET(SalesHeader."Document Type"::Order, SalesShipmentLine."Order No.");
-            SalesHeader."Sell-to Customer No." := SalesShipmentLine."Sell-to Customer No.";
-            SalesHeader."Bill-to Customer No." := SalesShipmentLine."Sell-to Customer No.";
-            SalesHeader.MODIFY;
-            REPEAT
-                SalesShipmentLine."Bill-to Customer No." := SalesShipmentLine."Sell-to Customer No.";
-                SalesShipmentLine.MODIFY;
-                SalesLine.GET(SalesLine."Document Type"::Order, SalesShipmentLine."Order No.", SalesShipmentLine."Order Line No.");
-                SalesLine."Sell-to Customer No." := SalesShipmentLine."Sell-to Customer No.";
-                SalesLine."Bill-to Customer No." := SalesShipmentLine."Sell-to Customer No.";
-                SalesLine.MODIFY;
-            UNTIL SalesShipmentLine.NEXT = 0;
-        END;
-    END;
 
 
     VAR
@@ -30,7 +12,7 @@ Codeunit 50002 "Pedidos Valorados"
         FORMULAPS2: TextConst ENU = 'CW-2D', ESP = 'PS-2D';
 
     [ServiceEnabled]
-    PROCEDURE Valorar(json: Text): Text[30];
+    PROCEDURE Valorar(json: Text): Text;
     VAR
         rPedido: Record 50001;
         rCab: Record 36;
@@ -60,7 +42,7 @@ Codeunit 50002 "Pedidos Valorados"
         cliente := clientetoken.AsValue().AsText();
         IF valora = 'ELIMINAR' THEN BEGIN
             valor := '0';
-            valorar := 'OK';
+            valora := 'OK';
             rPedido.SETRANGE(rPedido.Pedido, npedido);
             rPedido.SETRANGE(rPedido.Cliente, cliente);
             IF rPedido.FINDLAST THEN BEGIN
@@ -79,11 +61,11 @@ Codeunit 50002 "Pedidos Valorados"
         END;
         IF valora = 'BORRAR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
-                valorar := 'NO OK Error: Pedido no encontrado';
+                valora := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
-                EXIT;
+                EXIT('OK');
             END;
-            valorar := 'OK';
+            valora := 'OK';
             rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
             rDet.SETRANGE("Document No.", rCab."No.");
             rDet.DELETEALL;
@@ -97,17 +79,17 @@ Codeunit 50002 "Pedidos Valorados"
         rPedido.SETRANGE(rPedido.Pedido, npedido);
         rPedido.SETRANGE(rPedido.Cliente, cliente);
         IF NOT rPedido.FINDFIRST THEN BEGIN
-            valorar := 'NO OK Error: Pedido no encontrado';
+            valora := 'NO OK Error: Pedido no encontrado';
             valor := '0';
-            EXIT;
+            EXIT(valora);
         END;
         IF valora = 'CONVERTIR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
-                valorar := 'NO OK Error: Pedido no encontrado';
+                valora := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
-                EXIT;
+                EXIT('OK');
             END;
-            valorar := 'OK';
+            valora := 'OK';
             rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
             rDet.SETRANGE("Document No.", rCab."No.");
             IF rDet.FINDFIRST THEN
@@ -123,11 +105,11 @@ Codeunit 50002 "Pedidos Valorados"
         rPedido.SETRANGE(rPedido.Pedido, wPedido);
         rPedido.SETRANGE(rPedido.Cliente, cliente);
         IF NOT rPedido.FINDFIRST THEN BEGIN
-            valorar := 'NO OK Error: Pedido no encontrado';
+            valora := 'NO OK Error: Pedido no encontrado';
             valor := '0';
-            EXIT;
+            EXIT(valora);
         END;
-        DevuelvePedido(npedido);
+        npedido := DevuelvePedido();
         rCab.GET(rCab."Document Type"::Order, npedido);
         rCab.VALIDATE(rCab."Sell-to Customer No.", cliente);
         rCab."Pedido Web En Curso" := TRUE;
@@ -176,7 +158,7 @@ Codeunit 50002 "Pedidos Valorados"
             valor := FORMAT(val, 0, '<Precision,2:2><Standard Format,0>');
             rDet.MODIFY;
         UNTIL rPedido.NEXT = 0;
-        valorar := 'OK';
+        valora := 'OK';
         rPedido.MODIFYALL(rPedido.Replicacion, 1);
         IF DATE2DWY(rCab."Order Date", 1) > 5 THEN rCab."Order Date" := CALCDATE(FORMULAPS2, rCab."Order Date");
         rCab."Promised Delivery Date" := CALCDATE('7D', rCab."Order Date");
@@ -197,11 +179,14 @@ Codeunit 50002 "Pedidos Valorados"
         //   END;
         ///
         rCab.MODIFY;
+        exit(valora);
     END;
 
-    PROCEDURE DevuelvePedido(VAR nPedido: Code[20]);
+    PROCEDURE DevuelvePedido(): Text;
     VAR
         rCab: Record 36;
+
+
     BEGIN
         rCab.INIT;
         rCab."Document Type" := rCab."Document Type"::Order;
@@ -210,16 +195,47 @@ Codeunit 50002 "Pedidos Valorados"
         rCab."Document Date" := TODAY;
         rCab."Pedido Web En Curso" := TRUE;
         rCab.INSERT(TRUE);
-        nPedido := rCab."No.";
+        exit(rCab."No.");
     END;
 
-    PROCEDURE InsertaLinea(Secuencia: Integer; Pedido: Integer; Fecha: Date; Cliente: Text[30]; Articulo: Text[30]; Descripcion: Text[250]; Cantidad: Decimal): Text;
+    PROCEDURE InsertaLinea(json: Text): Text;
     VAR
         rPedido: Record 50001;
+        Secuencia: Integer;
+        Pedido: Text;
+        Fecha: Date;
+        Cliente: Text[30];
+        Articulo: Text[30];
+        Descripcion: Text[250];
+        Cantidad: Decimal;
+        Secuenciatoken: JsonToken;
+        Pedidotoken: JsonToken;
+        Fechatoken: JsonToken;
+        Clientetoken: JsonToken;
+        Articulotoken: JsonToken;
+        Descripciontoken: JsonToken;
+        Cantidadtoken: JsonToken;
+        jsonobj: JsonObject;
     BEGIN
+        jsonobj.ReadFrom(json);
+        jsonobj.Get('secuencia', Secuenciatoken);
+        jsonobj.Get('pedido', Pedidotoken);
+        jsonobj.Get('fecha', Fechatoken);
+        jsonobj.Get('cliente', Clientetoken);
+        jsonobj.Get('articulo', Articulotoken);
+        jsonobj.Get('descripcion', Descripciontoken);
+        jsonobj.Get('cantidad', Cantidadtoken);
+        Secuencia := Secuenciatoken.AsValue().AsInteger();
+        Pedido := Pedidotoken.AsValue().AsText();
+        Fecha := Fechatoken.AsValue().AsDate();
+        Cliente := Clientetoken.AsValue().AsText();
+        Articulo := Articulotoken.AsValue().AsText();
+        Descripcion := Descripciontoken.AsValue().AsText();
+        Cantidad := Cantidadtoken.AsValue().AsDecimal();
+
         rPedido.INIT;
         rPedido.Secuencia := Secuencia;
-        rPedido.Pedido := STRSUBSTNO('%1', Pedido);
+        rPedido.Pedido := Pedido;
         rPedido.Fecha := Fecha;
         rPedido.Cliente := Cliente;
         rPedido.Articulo := Articulo;
@@ -229,14 +245,73 @@ Codeunit 50002 "Pedidos Valorados"
         EXIT('OK');
     END;
 
-    PROCEDURE InsertaLineaNode(Secuencia: Text; Pedido: Text; Fecha: Text; Cliente: Text[30]; Articulo: Text[30]; Recurso: Text[30]; Descripcion: Text[250]; Cantidad: Decimal; Precio: Decimal; Garantia: Integer; Reccon: Text[30];
-    DocExterno: Text[30]; Crear: Integer; Ultima: Integer): Text;
+    PROCEDURE InsertaLineaNode(json: Text): Text;
     VAR
         rPedido: Record 50001;
         Sec: Integer;
         valora: Text[30];
         valor: Text[30];
+        Secuencia: Text;
+        Pedido: Text;
+        Fecha: Text;
+        Cliente: Text[30];
+        Articulo: Text[30];
+        Recurso: Text[30];
+        Descripcion: Text[250];
+        Cantidad: Decimal;
+        Precio: Decimal;
+        Garantia: Integer;
+        Reccon: Text[30];
+        DocExterno: Text[30];
+        Crear: Integer;
+        Ultima: Integer;
+        Secuenciatoken: JsonToken;
+        Pedidotoken: JsonToken;
+        Fechatoken: JsonToken;
+        Clientetoken: JsonToken;
+        Articulotoken: JsonToken;
+        Recursotoken: JsonToken;
+        Descripciontoken: JsonToken;
+        Cantidadtoken: JsonToken;
+        Preciotoken: JsonToken;
+        Garantiatoken: JsonToken;
+        Reccontoken: JsonToken;
+        DocExternotoken: JsonToken;
+        Creartoken: JsonToken;
+        Ultimatoken: JsonToken;
+        jsonobj: JsonObject;
     BEGIN
+        jsonobj.ReadFrom(json);
+        jsonobj.Get('secuencia', Secuenciatoken);
+        jsonobj.Get('pedido', Pedidotoken);
+        jsonobj.Get('fecha', Fechatoken);
+        jsonobj.Get('cliente', Clientetoken);
+        jsonobj.Get('articulo', Articulotoken);
+        jsonobj.Get('recurso', Recursotoken);
+        jsonobj.Get('descripcion', Descripciontoken);
+
+        jsonobj.Get('cantidad', Cantidadtoken);
+        jsonobj.Get('precio', Preciotoken);
+        jsonobj.Get('garantia', Garantiatoken);
+        jsonobj.Get('repcon', Reccontoken);
+        jsonobj.Get('docexterno', DocExternotoken);
+        jsonobj.Get('crear', Creartoken);
+        jsonobj.Get('ultima', Ultimatoken);
+        Secuencia := Secuenciatoken.AsValue().AsText();
+        Pedido := Pedidotoken.AsValue().AsText();
+        Fecha := Fechatoken.AsValue().AsText();
+        Cliente := Clientetoken.AsValue().AsText();
+        Articulo := Articulotoken.AsValue().AsText();
+        Recurso := Recursotoken.AsValue().AsText();
+        Descripcion := Descripciontoken.AsValue().AsText();
+        Cantidad := Cantidadtoken.AsValue().AsDecimal();
+        Precio := Preciotoken.AsValue().AsDecimal();
+        Garantia := Garantiatoken.AsValue().AsInteger();
+        Reccon := Reccontoken.AsValue().AsText();
+        DocExterno := DocExternotoken.AsValue().AsText();
+        Crear := Creartoken.AsValue().AsInteger();
+        Ultima := Ultimatoken.AsValue().AsInteger();
+
         rPedido.SETRANGE(rPedido.GUID, Secuencia);
         IF rPedido.FINDFIRST THEN ERROR('Linea ya existe');
         rPedido.RESET;
@@ -272,12 +347,15 @@ Codeunit 50002 "Pedidos Valorados"
             valor := '0';
             valora := 'Valorar';
             COMMIT;
-            ValorarNode(Pedido, Cliente, valora, valor);
+            FuncionValorar(Pedido, Cliente, valora, valor);
         END;
         EXIT(valor);
     END;
 
-    PROCEDURE ValorarNode(npedido: Text; cliente: Code[20]; VAR valorar: Text[30]; VAR valor: Text[30]): Text[30];
+    local PROCEDURE FuncionValorar(var npedido: Text;
+        var cliente: Text[30];
+        var valora: Text[30];
+        var valor: Text[30])
     VAR
         rPedido: Record 50001;
         rCab: Record 36;
@@ -287,10 +365,14 @@ Codeunit 50002 "Pedidos Valorados"
         wPedido: Text;
         ItemCrossReference: Record "Item Reference";// 5717;
         Reccon: Code[20];
+
+
     BEGIN
-        IF valorar = 'ELIMINAR' THEN BEGIN
+
+
+        IF valora = 'ELIMINAR' THEN BEGIN
             valor := '0';
-            valorar := 'OK';
+            valora := 'OK';
             IF rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
                 rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
                 rDet.SETRANGE("Document No.", rCab."No.");
@@ -302,13 +384,13 @@ Codeunit 50002 "Pedidos Valorados"
             rPedido.DELETEALL;
             EXIT;
         END;
-        IF valorar = 'BORRAR' THEN BEGIN
+        IF valora = 'BORRAR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
-                valorar := 'NO OK Error: Pedido no encontrado';
+                valora := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
                 EXIT;
             END;
-            valorar := 'OK';
+            valora := 'OK';
             rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
             rDet.SETRANGE("Document No.", rCab."No.");
             rDet.DELETEALL;
@@ -322,17 +404,17 @@ Codeunit 50002 "Pedidos Valorados"
         rPedido.SETRANGE(rPedido.Pedido, npedido);
         rPedido.SETRANGE(rPedido.Cliente, cliente);
         IF NOT rPedido.FINDFIRST THEN BEGIN
-            valorar := 'NO OK Error: Pedido no encontrado';
+            valora := 'NO OK Error: Pedido no encontrado';
             valor := '0';
             EXIT;
         END;
-        IF valorar = 'CONVERTIR' THEN BEGIN
+        IF valora = 'CONVERTIR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
-                valorar := 'NO OK Error: Pedido no encontrado';
+                valora := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
                 EXIT;
             END;
-            valorar := 'OK';
+            valora := 'OK';
             rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
             rDet.SETRANGE("Document No.", rCab."No.");
             IF rDet.FINDFIRST THEN
@@ -348,11 +430,11 @@ Codeunit 50002 "Pedidos Valorados"
         rPedido.SETRANGE(rPedido.Pedido, wPedido);
         rPedido.SETRANGE(rPedido.Cliente, cliente);
         IF NOT rPedido.FINDFIRST THEN BEGIN
-            valorar := 'NO OK Error: Pedido no encontrado';
+            valora := 'NO OK Error: Pedido no encontrado';
             valor := '0';
             EXIT;
         END;
-        DevuelvePedidoNode(npedido);
+        npedido := DevuelvePedidoNode();
         rCab.GET(rCab."Document Type"::Order, npedido);
         rCab.VALIDATE(rCab."Sell-to Customer No.", cliente);
         rCab."Pedido Web En Curso" := TRUE;
@@ -408,7 +490,7 @@ Codeunit 50002 "Pedidos Valorados"
 
             rDet.MODIFY;
         UNTIL rPedido.NEXT = 0;
-        valorar := 'OK';
+        valora := 'OK';
         rPedido.MODIFYALL(rPedido.Replicacion, 1);
         //   {IF DATE2DWY(rCab."Order Date",1)>5 THEN rCab."Order Date":=CALCDATE(FORMULAPS2,rCab."Order Date");
         //   rCab."Promised Delivery Date":=CALCDATE('7D',rCab."Order Date");
@@ -431,7 +513,183 @@ Codeunit 50002 "Pedidos Valorados"
         rCab.MODIFY;
     END;
 
-    PROCEDURE DevuelvePedidoNode(VAR nPedido: Text);
+
+
+    PROCEDURE ValorarNode(json: Text): Text;
+    VAR
+        rPedido: Record 50001;
+        rCab: Record 36;
+        rDet: Record 37;
+        a: Integer;
+        val: Decimal;
+        wPedido: Text;
+        ItemCrossReference: Record "Item Reference";// 5717;
+        Reccon: Code[20];
+        npedido: Text;
+        cliente: Code[20];
+        valora: Text[30];
+        valor: Text[30];
+        jsonobj: JsonObject;
+        npedidotoken: JsonToken;
+        clientetoken: JsonToken;
+        valoratoken: JsonToken;
+        valortoken: JsonToken;
+
+    BEGIN
+        jsonobj.ReadFrom(json);
+        jsonobj.Get('pedido', npedidotoken);
+        jsonobj.Get('cliente', clientetoken);
+        jsonobj.Get('valorar', valoratoken);
+        jsonobj.Get('valor', valortoken);
+        valora := valoratoken.AsValue().AsText();
+        valor := valortoken.AsValue().AsText();
+        npedido := npedidotoken.AsValue().AsText();
+        cliente := clientetoken.AsValue().AsText();
+
+        IF valora = 'ELIMINAR' THEN BEGIN
+            valor := '0';
+            valora := 'OK';
+            IF rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
+                rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
+                rDet.SETRANGE("Document No.", rCab."No.");
+                rDet.DELETEALL;
+                rCab.DELETE;
+            END;
+            rPedido.SETRANGE(rPedido.Pedido, npedido);
+            rPedido.SETRANGE(rPedido.Cliente, cliente);
+            rPedido.DELETEALL;
+            EXIT(valora);
+        END;
+        IF valora = 'BORRAR' THEN BEGIN
+            IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
+                valora := 'NO OK Error: Pedido no encontrado';
+                valor := '0';
+                EXIT(valora);
+            END;
+            valora := 'OK';
+            rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
+            rDet.SETRANGE("Document No.", rCab."No.");
+            rDet.DELETEALL;
+            rCab.DELETE;
+            rPedido.SETRANGE(rPedido.Pedido, npedido);
+            rPedido.SETRANGE(rPedido.Cliente, cliente);
+            rPedido.DELETEALL;
+            EXIT(valora);
+        END;
+
+        rPedido.SETRANGE(rPedido.Pedido, npedido);
+        rPedido.SETRANGE(rPedido.Cliente, cliente);
+        IF NOT rPedido.FINDFIRST THEN BEGIN
+            valora := 'NO OK Error: Pedido no encontrado';
+            valor := '0';
+            EXIT(valora);
+        END;
+        IF valora = 'CONVERTIR' THEN BEGIN
+            IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
+                valora := 'NO OK Error: Pedido no encontrado';
+                valor := '0';
+                EXIT(valora);
+            END;
+            valora := 'OK';
+            rDet.SETRANGE("Document Type", rDet."Document Type"::Order);
+            rDet.SETRANGE("Document No.", rCab."No.");
+            IF rDet.FINDFIRST THEN
+                REPEAT
+                    val := val + rDet."Line Amount";
+                    valor := FORMAT(val, 0, '<Precision,2:2><Standard Format,0>');
+                UNTIL rPedido.NEXT = 0;
+            rCab."Pedido Web En Curso" := FALSE;
+            rCab.MODIFY;
+            EXIT(valora);
+        END;
+        wPedido := npedido;
+        rPedido.SETRANGE(rPedido.Pedido, wPedido);
+        rPedido.SETRANGE(rPedido.Cliente, cliente);
+        IF NOT rPedido.FINDFIRST THEN BEGIN
+            valora := 'NO OK Error: Pedido no encontrado';
+            valor := '0';
+            EXIT(valora);
+        END;
+        npedido := DevuelvePedidoNode();
+        rCab.GET(rCab."Document Type"::Order, npedido);
+        rCab.VALIDATE(rCab."Sell-to Customer No.", cliente);
+        rCab."Pedido Web En Curso" := TRUE;
+        rCab."Order Date" := rPedido.Fecha;
+        rCab."Posting Date" := rPedido.Fecha;
+        rCab."External Document No." := rPedido."Documento Externo";
+        rCab."Your Reference" := npedido;
+        rCab."Tipo pedido" := rCab."Tipo pedido"::Web;
+        rCab."Transaction Specification" := 'WEB';
+        rCab."Pedido Web En Curso" := FALSE;
+        rCab.MODIFY;
+        ////
+        a := 0;
+        REPEAT
+            rDet."Document Type" := rDet."Document Type"::Order;
+            rDet."Document No." := rCab."No.";
+            a := a + 10000;
+            rDet."Line No." := a;
+            rDet.INSERT(TRUE);
+            IF rPedido.Articulo <> '' THEN BEGIN
+                rDet.Type := rDet.Type::Item;
+                rDet.VALIDATE("No.", rPedido.Articulo);
+
+                ItemCrossReference.SETRANGE("Reference Type", ItemCrossReference."Reference Type"::Customer);
+                ItemCrossReference.SETRANGE("Item No.", rDet."No.");
+                IF ItemCrossReference.FINDFIRST THEN BEGIN
+                    rDet."Item Reference Unit of Measure" := ItemCrossReference."Unit of Measure";
+                    rDet."Item Reference Type" := ItemCrossReference."Reference Type";
+                    rDet."Item Reference Type No." := ItemCrossReference."Reference Type No.";
+                    rDet."Item Reference No." := ItemCrossReference."Reference No.";
+                    IF ItemCrossReference.Description <> '' THEN
+                        rDet.Description := ItemCrossReference.Description;
+                END;
+            END ELSE BEGIN
+                IF rPedido.Recurso <> '' THEN BEGIN
+                    rDet.Type := rDet.Type::Resource;
+                    rDet.VALIDATE("No.", rPedido.Recurso);
+                END;
+            END;
+            rDet.VALIDATE(Quantity, rPedido.Cantidad);
+            IF rPedido.Descripcion <> '' THEN
+                rDet."Descripción completa" := rPedido.Descripcion;
+            IF rPedido.Descripcion <> '' THEN
+                rDet.Description := rPedido.Descripcion;
+            IF rPedido.Precio <> 0 THEN
+                rDet.VALIDATE("Unit Price", rPedido.Precio);
+            IF rPedido.Garantia THEN rDet.VALIDATE("Unit Price", 0);
+            val := val + rDet."Line Amount";
+            Reccon := rPedido.Repcon;
+            IF Reccon <> '' THEN rDet.ValidateShortcutDimCode(3, Reccon);
+            valor := FORMAT(val, 0, '<Precision,2:2><Standard Format,0>');
+            IF rPedido.Crear THEN rDet."Crear Producto" := TRUE;
+
+            rDet.MODIFY;
+        UNTIL rPedido.NEXT = 0;
+        valora := 'OK';
+        rPedido.MODIFYALL(rPedido.Replicacion, 1);
+        //   {IF DATE2DWY(rCab."Order Date",1)>5 THEN rCab."Order Date":=CALCDATE(FORMULAPS2,rCab."Order Date");
+        //   rCab."Promised Delivery Date":=CALCDATE('7D',rCab."Order Date");
+        //   rCab."Requested Delivery Date":=rCab."Promised Delivery Date";
+        //   IF DATE2DWY(rCab."Requested Delivery Date",1)>5 THEN
+        //     rCab."Requested Delivery Date":=CALCDATE(FORMULAPS1,rCab."Requested Delivery Date");
+        //   rCab."Ruta Fab":=FORMAT(DATE2DWY(rCab."Requested Delivery Date",1));
+        //   IF rCab."Requested Delivery Date">CALCDATE(FORMULAPS,TODAY) THEN
+        //      rCab."Ruta Fab":=FORMAT(DATE2DWY(rCab."Requested Delivery Date",1)+5);
+        //   IF rCab."Requested Delivery Date"-TODAY<=1 THEN
+        //      rCab."Ruta Fab":='';
+        //   CASE rCab."Ruta Fab" OF
+        //   '1' : rCab."Ruta Fab":='LUNES';
+        //   '2' : rCab."Ruta Fab":='MARTES';
+        //   '3' : rCab."Ruta Fab":='MIERCOLES';
+        //   '4' : rCab."Ruta Fab":='JUEVES';
+        //   '5' :rCab."Ruta Fab":='VIERNES';
+        //   END;}
+        ///
+        rCab.MODIFY;
+    END;
+
+    PROCEDURE DevuelvePedidoNode(): Text;
     VAR
         rCab: Record 36;
     BEGIN
@@ -442,7 +700,7 @@ Codeunit 50002 "Pedidos Valorados"
         rCab."Document Date" := TODAY;
         rCab."Pedido Web En Curso" := TRUE;
         rCab.INSERT(TRUE);
-        nPedido := rCab."No.";
+        Exit(rCab."No.");
     END;
 
 
