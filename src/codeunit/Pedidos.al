@@ -1,5 +1,6 @@
 Codeunit 50002 "Pedidos Valorados"
 {
+
     trigger OnRun()
     BEGIN
         SalesShipmentLine.SETRANGE("Document No.", '78301');
@@ -28,8 +29,8 @@ Codeunit 50002 "Pedidos Valorados"
         FORMULAPS1: TextConst ENU = 'CW+1D', ESP = 'PS+1D';
         FORMULAPS2: TextConst ENU = 'CW-2D', ESP = 'PS-2D';
 
-    PROCEDURE Valorar(npedido: Code[100];
-        cliente: Code[20]; VAR valorar: Text[30]; VAR valor: Text[30]): Text[30];
+    [ServiceEnabled]
+    PROCEDURE Valorar(json: Text): Text[30];
     VAR
         rPedido: Record 50001;
         rCab: Record 36;
@@ -38,8 +39,26 @@ Codeunit 50002 "Pedidos Valorados"
         val: Decimal;
         wPedido: Text;
         ItemCrossReference: Record "Item Reference";// 5717;
+        npedido: Code[100];
+        cliente: Code[20];
+        valora: Text[30];
+        valor: Text[30];
+        npedidotoken: JsonToken;
+        clientetoken: JsonToken;
+        valoratoken: JsonToken;
+        valortoken: JsonToken;
+        jsonobj: JsonObject;
     BEGIN
-        IF valorar = 'ELIMINAR' THEN BEGIN
+        jsonobj.ReadFrom(json);
+        jsonobj.Get('pedido', npedidotoken);
+        jsonobj.Get('cliente', clientetoken);
+        jsonobj.Get('valorar', valoratoken);
+        jsonobj.Get('valor', valortoken);
+        valora := valoratoken.AsValue().AsText();
+        valor := valortoken.AsValue().AsText();
+        npedido := npedidotoken.AsValue().AsText();
+        cliente := clientetoken.AsValue().AsText();
+        IF valora = 'ELIMINAR' THEN BEGIN
             valor := '0';
             valorar := 'OK';
             rPedido.SETRANGE(rPedido.Pedido, npedido);
@@ -58,7 +77,7 @@ Codeunit 50002 "Pedidos Valorados"
             rPedido.DELETEALL;
             EXIT;
         END;
-        IF valorar = 'BORRAR' THEN BEGIN
+        IF valora = 'BORRAR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
                 valorar := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
@@ -82,7 +101,7 @@ Codeunit 50002 "Pedidos Valorados"
             valor := '0';
             EXIT;
         END;
-        IF valorar = 'CONVERTIR' THEN BEGIN
+        IF valora = 'CONVERTIR' THEN BEGIN
             IF NOT rCab.GET(rCab."Document Type"::Order, npedido) THEN BEGIN
                 valorar := 'NO OK Error: Pedido no encontrado';
                 valor := '0';
