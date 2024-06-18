@@ -14,5 +14,9 @@ tableextension 80036 SalesHeader extends "Sales header"
 
             Caption = 'Tipo pedido';
         }
+        field(50020; "Invoiced"; Boolean)
+        {
+            Caption = 'Albarán Facturado';
+        }
     }
 }
